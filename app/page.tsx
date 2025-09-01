@@ -9,7 +9,7 @@ export default function HomePage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Add a small delay to prevent race conditions with state persistence
+    // Increased delay to prevent race conditions with state persistence in production
     const timer = setTimeout(() => {
       if (!onboardingComplete) {
         router.push('/onboarding')
@@ -18,7 +18,7 @@ export default function HomePage() {
       } else {
         router.push('/dashboard')
       }
-    }, 50)
+    }, 200)
 
     return () => clearTimeout(timer)
   }, [onboardingComplete, quizComplete, router])
