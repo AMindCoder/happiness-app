@@ -61,6 +61,10 @@ export interface AppState {
 }
 
 export interface AppActions {
+  // Hydration
+  _hasHydrated: boolean
+  setHasHydrated: (hasHydrated: boolean) => void
+  
   // Onboarding
   completeOnboarding: (persona: string, goals: string[]) => void
   
@@ -106,6 +110,9 @@ export const useAppState = create<AppState & AppActions>()(
   persist(
     (set, get) => ({
       ...initialState,
+      _hasHydrated: false,
+      
+      setHasHydrated: (hasHydrated: boolean) => set({ _hasHydrated: hasHydrated }),
       
       completeOnboarding: (persona: string, goals: string[]) =>
         set({
@@ -208,6 +215,11 @@ export const useAppState = create<AppState & AppActions>()(
     }),
     {
       name: 'happiness.v1',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHasHydrated(true)
+        }
+      },
     }
   )
 )

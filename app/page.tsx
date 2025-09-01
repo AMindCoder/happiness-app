@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function HomePage() {
-  const { onboardingComplete, quizComplete } = useAppState()
+  const { onboardingComplete, quizComplete, _hasHydrated } = useAppState()
   const router = useRouter()
 
   useEffect(() => {
-    // Increased delay to prevent race conditions with state persistence in production
+    // Only navigate after Zustand has hydrated from localStorage
+    if (!_hasHydrated) return
+
     const timer = setTimeout(() => {
       if (!onboardingComplete) {
         router.push('/onboarding')
@@ -18,10 +20,10 @@ export default function HomePage() {
       } else {
         router.push('/dashboard')
       }
-    }, 200)
+    }, 50)
 
     return () => clearTimeout(timer)
-  }, [onboardingComplete, quizComplete, router])
+  }, [onboardingComplete, quizComplete, _hasHydrated, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-happiness-purple">
