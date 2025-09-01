@@ -12,21 +12,21 @@ export default function SiteLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { onboardingComplete, quizComplete } = useAppState()
+  const { onboardingComplete, quizComplete, _hasHydrated } = useAppState()
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect logic for onboarding
-    if (typeof window !== 'undefined') {
-      const currentPath = window.location.pathname
-      
-      if (!onboardingComplete && currentPath !== '/onboarding') {
-        router.push('/onboarding')
-      } else if (onboardingComplete && !quizComplete && currentPath !== '/quiz') {
-        router.push('/quiz')
-      }
+    // Only redirect after Zustand has hydrated from localStorage
+    if (!_hasHydrated || typeof window === 'undefined') return
+    
+    const currentPath = window.location.pathname
+    
+    if (!onboardingComplete && currentPath !== '/onboarding') {
+      router.push('/onboarding')
+    } else if (onboardingComplete && !quizComplete && currentPath !== '/quiz') {
+      router.push('/quiz')
     }
-  }, [onboardingComplete, quizComplete, router])
+  }, [onboardingComplete, quizComplete, _hasHydrated, router])
 
   // Don't show layout during onboarding/quiz
   if (!onboardingComplete || !quizComplete) {
