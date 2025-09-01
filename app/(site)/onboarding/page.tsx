@@ -40,9 +40,11 @@ export default function OnboardingPage() {
     )
   }
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (selectedPersona && selectedGoals.length > 0 && agreedToTerms) {
       completeOnboarding(selectedPersona, selectedGoals)
+      // Small delay to ensure state is persisted before navigation
+      await new Promise(resolve => setTimeout(resolve, 100))
       router.push('/quiz')
     }
   }

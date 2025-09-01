@@ -9,13 +9,18 @@ export default function HomePage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!onboardingComplete) {
-      router.push('/onboarding')
-    } else if (!quizComplete) {
-      router.push('/quiz')
-    } else {
-      router.push('/dashboard')
-    }
+    // Add a small delay to prevent race conditions with state persistence
+    const timer = setTimeout(() => {
+      if (!onboardingComplete) {
+        router.push('/onboarding')
+      } else if (!quizComplete) {
+        router.push('/quiz')
+      } else {
+        router.push('/dashboard')
+      }
+    }, 50)
+
+    return () => clearTimeout(timer)
   }, [onboardingComplete, quizComplete, router])
 
   return (
