@@ -19,6 +19,7 @@ Successfully built and deployed a comprehensive mobile-first Progressive Web App
 - ✅ AI-powered coaching system with persona-specific responses
 - ✅ Production-ready deployment to GitHub
 - ✅ One-click deployment ready for major platforms
+- ✅ **RESOLVED: Production flickering issue on Vercel** (September 2024)
 
 ---
 
@@ -471,10 +472,80 @@ The next phase of development will focus on advanced AI integration, real-time c
 
 ---
 
-**Project Status:** ✅ **COMPLETE & DEPLOYMENT READY**  
+## 🔧 **Production Issue Resolution (September 2024)**
+
+### **Issue: Vercel Deployment Flickering**
+After successful initial deployment, users reported flickering/redirect loops when clicking "Start Your Journey" after completing the onboarding flow. The issue occurred specifically on Vercel production but worked correctly in local development.
+
+### **Root Cause Analysis**
+Through systematic debugging with Playwright testing, the issue was identified as a **Zustand state persistence rehydration timing problem**:
+
+1. **Development Environment:** State rehydrated instantly from localStorage
+2. **Production Environment:** Rehydration had latency, causing `useEffect` to run before state restoration completed
+3. **Result:** Navigation logic saw `onboardingComplete: false` → triggered redirect loops
+
+### **Technical Solution Implemented**
+**Zustand Hydration Tracking Pattern:**
+
+```typescript
+// Added hydration state to Zustand store
+export interface AppActions {
+  _hasHydrated: boolean
+  setHasHydrated: (hasHydrated: boolean) => void
+  // ... other actions
+}
+
+// Added rehydration callback
+{
+  name: 'happiness.v1',
+  onRehydrateStorage: () => (state) => {
+    if (state) {
+      state.setHasHydrated(true)
+    }
+  },
+}
+
+// Updated navigation logic to wait for hydration
+useEffect(() => {
+  // Only navigate after Zustand has hydrated from localStorage
+  if (!_hasHydrated) return
+  
+  // Navigation logic here...
+}, [onboardingComplete, quizComplete, _hasHydrated, router])
+```
+
+### **Additional Fixes**
+1. **Next.js Metadata API Compliance:** Fixed build warnings by moving `viewport` and `themeColor` to `generateViewport`
+2. **Comprehensive Hydration Protection:** Applied hydration waiting to both main page and site layout
+3. **PWA Manifest Cleanup:** Simplified manifest to eliminate icon loading errors
+
+### **Commits Applied**
+- `237052c` - Initial production flickering fix with delays
+- `9be4fbe` - Enhanced delays and manifest cleanup  
+- `e84ea68` - Definitive hydration tracking solution
+- `43710be` - Build warnings fix and comprehensive protection
+
+### **Testing & Verification**
+- ✅ **Local Testing:** Playwright automated testing confirmed fix works with fresh state
+- ✅ **Production Verification:** Vercel deployment at `https://happiness-app-two.vercel.app` confirmed resolution
+- ✅ **No Regression:** All existing functionality preserved and enhanced
+
+### **Lessons Learned**
+1. **Environment Parity:** Production environments can have subtle timing differences from development
+2. **State Persistence Patterns:** Always wait for hydration completion before navigation logic
+3. **Systematic Debugging:** Playwright testing was crucial for reproducing production-only issues
+4. **Build Quality:** Clean builds without warnings contribute to stable deployments
+
+### **Current Status**
+✅ **FULLY RESOLVED** - The application now provides a smooth, flicker-free onboarding experience across all deployment environments.
+
+---
+
+**Project Status:** ✅ **COMPLETE & PRODUCTION STABLE**  
 **GitHub Repository:** https://github.com/AMindCoder/happiness-app  
-**Total Development Time:** Single intensive development session  
-**Ready for:** Production deployment, user testing, and iterative enhancement
+**Live Production:** https://happiness-app-two.vercel.app  
+**Total Development Time:** Single intensive development session + production issue resolution  
+**Ready for:** Production usage, user testing, and iterative enhancement
 
 ---
 
